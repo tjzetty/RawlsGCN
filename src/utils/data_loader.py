@@ -40,6 +40,10 @@ class GraphDataset:
         # free memory
         del data
 
+        # Random split and preprocessing
+        self.random_split()
+        self.preprocess()
+
     def random_split(self):
         # initialization
         mask = torch.empty(self.num_nodes, dtype=torch.bool).fill_(False)
@@ -110,18 +114,20 @@ class GraphDataset:
         return mat
 
     def preprocess(self, type="laplacian"):
+        identity = sp.eye(self.raw_graph.shape[0])
+
         if type == "laplacian":
             self.graph = matrix2tensor(
-                symmetric_normalize(self.raw_graph + sp.eye(self.raw_graph.shape[0]))
+                symmetric_normalize(self.raw_graph + identity)
             )
         elif type == "row":
             self.graph = matrix2tensor(
-                row_normalize(self.raw_graph + sp.eye(self.raw_graph.shape[0]))
+                row_normalize(self.raw_graph + identity)
             )
         elif type == "doubly_stochastic_no_laplacian":
-            self.graph = self.get_doubly_stochastic(self.raw_graph + sp.eye(self.raw_graph.shape[0]))
+            self.graph = self.get_doubly_stochastic(self.raw_graph + identity)
         elif type == "doubly_stochastic_laplacian":
-            self.graph = symmetric_normalize(self.raw_graph + sp.eye(self.raw_graph.shape[0]))
+            self.graph = symmetric_normalize(self.raw_graph + identity)
             self.graph = self.get_doubly_stochastic(self.graph)
         else:
             raise ValueError(

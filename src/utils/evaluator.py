@@ -44,6 +44,8 @@ class Evaluator:
             loss_val = loss_mat[i, label].item()
             loss_by_deg[degree].append(loss_val)
         res = [statistics.mean(losses) for degree, losses in loss_by_deg.items()]
+        if len(res) < 2: 
+            return -1
         return statistics.variance(res)
 
     def eval(self, output, labels, idx, raw_graph, stage):

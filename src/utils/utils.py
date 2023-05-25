@@ -90,7 +90,9 @@ def random_split(dataset):
     # get indices for training
     if not dataset.is_ratio and dataset.split_by_class:
         train_idx = dataset.get_split_by_class(num_train_per_class=num_train)
+        train_idx = torch.clamp(train_idx, max=mask.size(0) - 1)
     else:
+        # train_idx = torch.randperm(dataset.num_nodes)[:num_train]
         train_idx = torch.randperm(dataset.num_nodes)[:num_train]
 
     # get remaining indices

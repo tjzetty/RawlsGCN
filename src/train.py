@@ -8,6 +8,7 @@ from utils import data_loader, utils
 from utils.trainer_rawlsgcn_graph import PreProcessingTrainer
 from utils.trainer_rawlsgcn_grad import InProcessingTrainer
 
+from dataloading import load_data
 
 # parse argument
 parser = argparse.ArgumentParser()
@@ -48,6 +49,12 @@ parser.add_argument(
     type=str,
     default="negative_log_likelihood",
     help="Loss function (negative_log_likelihood or cross_entropy).",
+)
+parser.add_argument(
+    "--dataname",
+    type=str,
+    default="twitter",
+    help="Grab from list: Graph-Mining-Fairness-Data.",
 )
 
 args = parser.parse_args()
@@ -114,19 +121,53 @@ def run_exp(dataset, split, configs):
 
 if __name__ == "__main__":
     # update configs
+    # dataset_configs = {
+    #     "name": args.dataset,
+    #     "is_ratio": False,
+    #     "split_by_class": True,
+    #     "num_train": 20,
+    #     "num_val": 500,
+    #     "num_test": 1000,
+    #     "ratio_train": 0.8,
+    #     "ratio_val": 0.1,
+    # }
+    print("Dataname: ", args.dataname)
+    adj, features, labels, idx_train, idx_val, idx_test, sens, sens_idx = load_data(args.dataname)
+
+    num_nodes = adj.shape[0]
+    num_edges = adj.nnz  # Get the number of non-zero elements in the sparse adjacency matrix
+
+    print("Number of nodes:", num_nodes)
+    print("Number of edges:", num_edges)
+
+    # Update dataset_configs with relevant information
     dataset_configs = {
         "name": args.dataset,
         "is_ratio": False,
         "split_by_class": True,
-        "num_train": 20,
-        "num_val": 500,
-        "num_test": 1000,
-        "ratio_train": 0.8,
-        "ratio_val": 0.1,
+        "num_train": len(idx_train),
+        "num_val": len(idx_val),
+        "num_test": len(idx_test),
+        "ratio_train": None,  # Set to None if not using ratio-based split
+        "ratio_val": None,  # Set to None if not using ratio-based split
+        # "num_node_features": len(features),
     }
 
-    # load data
+    # load data (Create the GraphDataset object with dataset_configs)
     dataset = data_loader.GraphDataset(dataset_configs)
+    dataset.num_nodes = num_nodes
+    dataset.num_edges = num_edges
+    dataset.raw_graph = adj
+    dataset.features = features
+    dataset.labels = labels
+    # dataset.idx_train = idx_train
+    # dataset.idx_val = idx_val
+    # dataset.idx_test = idx_test
+    # dataset.sens = sens
+    # dataset.sens_idx = sens_idx
+    # dataset.num_classes = 1
+    dataset.num_node_features = features.shape[1]
+    # print("Shape of features: ",features.shape[1])
 
     # get random splits
     split = generate_split(dataset)
