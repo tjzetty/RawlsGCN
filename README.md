@@ -9,12 +9,12 @@ Tested under python 3.8, pytorch 1.9
 ## Run
 RawlsGCN-Graph:
 ```
-python train.py --model rawlsgcn_graph
+python train.py --model rawlsgcn_graph --dataname credit
 ```
 
 RawlsGCN-Grad:
 ```
-python train.py --model rawlsgcn_grad
+python train.py --model rawlsgcn_grad --dataname twitter
 ```
 
 ## Citation
